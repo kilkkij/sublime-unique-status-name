@@ -6,6 +6,16 @@ def split_path(path):
     path = os.path.normpath(path)
     return path.split(os.sep)
 
+def same_path_up_to_point(path, paths):
+    """True if the given path is a super-branch of all the others
+    path        list of strings
+    paths       lists of strings
+    """
+    return all((
+            len(path) < len(p) 
+            and all(pi==pj for pi, pj in zip(path, p))
+        ) for p in paths)
+
 def _unique_identifier_from_lists(path, paths, identifier):
     """
     path        list of strings
@@ -16,6 +26,8 @@ def _unique_identifier_from_lists(path, paths, identifier):
     if not path or not paths:
         return identifier
     identifier.append(path[-1])
+    if same_path_up_to_point(path, paths):
+        return identifier
     paths = [p[:-1] for p in paths if p[-1]==path[-1]]
     path = path[:-1]
     return _unique_identifier_from_lists(path, paths, identifier)
@@ -50,7 +62,7 @@ def _set_view_status(view):
         display_chain = unique_identifier(path, paths)
         if display_chain:
             directory_string = os.path.join(*display_chain)
-            status_name += ' (%s)'%directory_string
+            status_name += ' — %s'%directory_string
 
         view.set_status('file_name', status_name)
 
