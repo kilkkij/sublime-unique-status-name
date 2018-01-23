@@ -1,7 +1,7 @@
 
 import sublime_plugin
 import os
-from .unique_file_identifier import file_identifier
+from .unique_file_identifier import minimal_identifying_path
 
 class UniqueNameInStatus(sublime_plugin.EventListener):
     """Update view status with file_name. Name adjusts to identify view uniquely."""
@@ -29,3 +29,12 @@ def valid_paths(view):
     paths = [v.file_name() for v in view.window().views()]
     paths = [p for p in paths if p is not None]
     return paths
+
+def file_identifier(file_path, other_paths):
+    """Return file name that is appended with a sub-path that identifies it in case of duplicates"""
+    name = os.path.basename(file_path)
+    identifier_list = minimal_identifying_path(file_path, other_paths)
+    if len(identifier_list):
+        subpath = os.path.join(*identifier_list)
+        name += ' — %s'%subpath
+    return name

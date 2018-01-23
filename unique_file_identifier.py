@@ -1,16 +1,7 @@
 
 import os
 
-def file_identifier(file_path, other_paths):
-    """Return file name that is appended with a sub-path that identifies it in case of duplicates"""
-    name = os.path.basename(file_path)
-    identifier_list = directory_identifier(file_path, other_paths)
-    if len(identifier_list):
-        subpath = os.path.join(*identifier_list)
-        name += ' — %s'%subpath
-    return name
-
-def directory_identifier(path, paths):
+def minimal_identifying_path(path, paths):
     """Shortest necessary list of folders identifying path uniquely
     path        str
     paths       list of strings
@@ -18,41 +9,33 @@ def directory_identifier(path, paths):
     """
     pathlist = split_path(path)
     pathslist = [split_path(p) for p in paths if p!=path]
-    unique_directories = _unique_identifier_from_lists(pathlist, pathslist, [])
-    unique_directories.reverse()
-    if not unique_directories:
-        return []
-    else:
-        return unique_directories[:-1]
-
-def _unique_identifier_from_lists(path, paths, identifier):
-    """Shortest necessary list of directories identifying given path uniquely.
-    Arguments:
-    path        [str, str, ...]
-    paths       [[str, str, ...], [str, str, ...], ...]
-    identifier  [str, str, ...]
-    RETURN      [str, str, ...]
-    """
-    if not path or not paths:
-        return identifier
-    identifier.append(path[-1])
-    if in_same_branch(path, paths):
-        return identifier
-    paths = [p[:-1] for p in paths if p[-1]==path[-1]]
-    path = path[:-1]
-    return _unique_identifier_from_lists(path, paths, identifier)
-
-def in_same_branch(path, paths):
-    """True if the given path is a sub-path of all the others
-    path        list of strings
-    paths       lists of strings
-    """
-    return all((
-            len(path) < len(other_path) 
-            and all(folder==other_folder for folder, other_folder in zip(path, other_path))
-        ) for other_path in paths)
+    return minimal_identifying_path_from_lists(pathlist, pathslist)
 
 def split_path(path):
     """Return a list of strings defining a path, using OS delimiter"""
     path = os.path.normpath(path)
     return path.split(os.sep)
+
+def minimal_identifying_path_from_lists(path, paths):
+
+	# Compare only to namesakes
+	path, paths = paths_ending_in_same_name(path, paths)
+
+	# There are no namesakes
+	if not paths:
+		return []
+
+	# Find the lowest-tier folder necessary to define unique path
+	for i, folder in enumerate(path):
+		for other_path in paths:
+			# Other path ends here
+			if len(other_path) <= i:
+				return path[i-1:]
+			# Other path branches here
+			elif folder != other_path[i]:
+				return path[i:]
+	# Current file is "highest"
+	return path[-1:]
+
+def paths_ending_in_same_name(path, paths):
+	return path[:-1], [p[:-1] for p in paths if len(p) and p[-1]==path[-1]]

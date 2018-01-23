@@ -1,20 +1,70 @@
 
-import os
 from unittest import TestCase
-import unique_file_identifier
+from unique_file_identifier import *
 
-# class Test_in_same_branch(TestCase):
-# 	def test_is_in_same_branch(self):
-# 		self.assertEqual(0, 1)
-# 	def test_not_in_same_branch(self):
-# 		self.assertNotEqual(0, 0)
+class Test_minimal_identifying_path(TestCase):
 
-class Test_split_path(TestCase):
-    def test_split_path(self):
-    	sep = os.sep
-    	folders = ['abc', 'dfg']
-    	path = sep.join(folders)
-    	split_string = unique_file_identifier.split_path(path)
-    	self.assertEqual(split_string, folders)
+	def test_directory_identifier_null(self):
+		path = 'arst/qwfp'
+		paths = []
+		result = minimal_identifying_path(path, paths)
+		self.assertEqual(result, [])
+
+	def test_directory_identifier_with_namesake(self):
+		path = 'arst/qwfp'
+		paths = ['arst/arst/qwfp']
+		result = minimal_identifying_path(path, paths)
+		self.assertEqual(result, ['arst'])
+
+class Test_minimal_identifying_path_from_lists(TestCase):
+
+	def test_minimal_identifying_path_only_file(self):
+		path = ['arst', 'qwfp', 'name']
+		paths = []
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, [])
+
+	def test_minimal_identifying_path_with_unrelated_files(self):
+		path = ['arst', 'qwfp', 'name']
+		paths = [['arst', 'qwfp', 'file2'], ['arst', 'yul', 'zxcv']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, [])
+
+	def test_minimal_identifying_path_namesake_at_same_level(self):
+		path = ['arst', 'qwfp', 'name']
+		paths = [['arst', 'zxcv', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['qwfp'])
+
+	def test_minimal_identifying_path_namesake_inside_duplicate_folders(self):
+		path = ['arst', 'qwfp', 'name']
+		paths = [['arst', 'qwfp', 'qwfp', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['qwfp'])
+
+	def test_minimal_identifying_path_file_inside_duplicate_folders(self):
+		path = ['arst', 'qwfp', 'qwfp', 'name']
+		paths = [['arst', 'qwfp', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['qwfp', 'qwfp'])
+
+	def test_minimal_identifying_path_file_deep_inside_duplicate_folders(self):
+		path = ['arst', 'qwfp', 'qwfp', 'qwfp', 'name']
+		paths = [['arst', 'qwfp', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['qwfp', 'qwfp', 'qwfp'])
+
+	def test_minimal_identifying_path_file_deep_inside(self):
+		path = ['arst', 'qwfp', 'arst', 'yul', 'name']
+		paths = [['arst', 'qwfp', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['qwfp', 'arst', 'yul'])
+
+	def test_minimal_identifying_path_namesakes_deep(self):
+		path = ['arst', 'qwfp', 'name']
+		paths = [['arst', 'qwfp', 'arst', 'yul', 'name'], ['brst', 'qwfp', 'riste', 'name']]
+		result = minimal_identifying_path_from_lists(path, paths)
+		self.assertEqual(result, ['arst', 'qwfp'])
+
 
 
